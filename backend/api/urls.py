@@ -1,17 +1,20 @@
+from api.views import (IngredientsViewSet, RecipeViewSet, TagsViewSet,
+                       download_shopping_cart)
 from django.urls import include, path
-
 from rest_framework.routers import DefaultRouter
 
-from .views import IngredientViewSet, RecipeViewSet, TagViewSet
+app_name = 'api'
 
 router = DefaultRouter()
-router.register(r'tags', TagViewSet, basename='tags')
-router.register(r'ingredients', IngredientViewSet, basename='ingredients')
-router.register(r'recipes', RecipeViewSet, basename='recipes')
+router.register('tags', TagsViewSet)
+router.register('ingredients', IngredientsViewSet)
+router.register('recipes', RecipeViewSet)
 
 urlpatterns = [
-    path(r'', include('djoser.urls.base')),
-    path("auth/", include('djoser.urls.authtoken')),
+    path('', include(router.urls)),
+    path(
+        'api/recipes/download_shopping_cart/',
+        download_shopping_cart,
+        name='download_shopping_cart'
+    )
 ]
-
-urlpatterns += router.urls
