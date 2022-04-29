@@ -1,3 +1,4 @@
+from colorfield.fields import ColorField
 from django.contrib.auth import get_user_model
 from django.core import validators
 from django.db import models
@@ -25,25 +26,20 @@ class Ingredient(models.Model):
 
 
 class Tag(models.Model):
-    BLUE = '#0000FF'
-    ORANGE = '#FFA500'
-    GREEN = '#008000'
-    PURPLE = '#800080'
-    YELLOW = '#FFFF00'
-
-    COLOR_CHOICES = [
-        (BLUE, 'Синий'),
-        (ORANGE, 'Оранжевый'),
-        (GREEN, 'Зеленый'),
-        (PURPLE, 'Фиолетовый'),
-        (YELLOW, 'Желтый'),
-    ]
-    name = models.CharField(max_length=200, unique=True,
-                            verbose_name='Название тега')
-    color = models.CharField(max_length=7, unique=True, choices=COLOR_CHOICES,
-                             verbose_name='Цвет в HEX')
-    slug = models.SlugField(max_length=200, unique=True,
-                            verbose_name='Уникальный слаг')
+    name = models.CharField(
+        max_length=200,
+        unique=True,
+        verbose_name='Название тега'
+    )
+    color = ColorField(
+        unique=True,
+        verbose_name='Цвет'
+    )
+    slug = models.SlugField(
+        max_length=200,
+        unique=True,
+        verbose_name='Слаг'
+    )
 
     class Meta:
         ordering = ['-id']
