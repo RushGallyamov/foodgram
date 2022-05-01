@@ -7,18 +7,24 @@ User = get_user_model()
 
 
 class Ingredient(models.Model):
-    name = models.CharField(max_length=200,
-                            verbose_name='Название ингредиента')
-    measurement_unit = models.CharField(max_length=200,
-                                        verbose_name='Единица измерения')
+    name = models.CharField(
+        max_length=200,
+        verbose_name='Название'
+    )
+    measurement_unit = models.CharField(
+        max_length=200,
+        verbose_name='Единица измерения'
+    )
 
     class Meta:
         ordering = ['-id']
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
         constraints = [
-            models.UniqueConstraint(fields=['name', 'measurement_unit'],
-                                    name='unique ingredient')
+            models.UniqueConstraint(
+                fields=['name', 'measurement_unit'],
+                name='unique ingredient'
+            )
         ]
 
     def __str__(self):
@@ -80,6 +86,9 @@ class Recipe(models.Model):
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 
+    def __str__(self):
+        return self.name
+
 
 class IngredientAmount(models.Model):
     ingredient = models.ForeignKey(
@@ -131,6 +140,9 @@ class Favorite(models.Model):
                                     name='unique favorite recipe for user')
         ]
 
+    def __str__(self):
+        return f'{self.recipe} в избранном у {self.user}'
+
 
 class ShoppingCart(models.Model):
     user = models.ForeignKey(
@@ -154,3 +166,6 @@ class ShoppingCart(models.Model):
             models.UniqueConstraint(fields=['user', 'recipe'],
                                     name='unique shopping_cart user')
         ]
+
+    def __str__(self):
+        return f'{self.recipe} в корзине у {self.user}'

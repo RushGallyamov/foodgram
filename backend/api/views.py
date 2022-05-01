@@ -1,10 +1,4 @@
-from api.filters import AuthorAndTagFilter, IngredientSearchFilter
-from api.models import (Favorite, Ingredient, IngredientAmount, Recipe,
-                        ShoppingCart, Tag)
-from api.pagination import LimitPageNumberPagination
-from api.permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
-from api.serializers import (CropRecipeSerializer, IngredientSerializer,
-                             RecipeSerializer, TagSerializer)
+from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
@@ -12,6 +6,13 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
+
+from .filters import AuthorAndTagFilter, IngredientSearchFilter
+from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
+from .pagination import LimitPageNumberPagination
+from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
+from .serializers import (CropRecipeSerializer, IngredientSerializer,
+                          RecipeSerializer, TagSerializer)
 
 
 class TagsViewSet(ReadOnlyModelViewSet):
@@ -78,28 +79,28 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'],
             permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
-        final_list = {}
-        ingredients = IngredientAmount.objects.filter(
-            recipe__shopping_cart__user=request.user).values_list(
-            'ingredient__name', 'ingredient__measurement_unit',
-            'amount')
+        ingredients = Ingredient.objects.filter(
+            recipes__shopping_cart__user=request.user
+        ).values(
+            'name',
+            'measurement_unit',
+        ).annotate(
+            total=Sum('ingredientamount__amount')
+        )
+        shopping_list = (
+            f'Список покупок для:\n\n{request.user.first_name}\n\n'
+        )
         for item in ingredients:
-            name = item[0]
-            if name not in final_list:
-                final_list[name] = {
-                    'measurement_unit': item[1],
-                    'amount': item[2]
-                }
-            else:
-                final_list[name]['amount'] += item[2]
-        shopping_list = []
-        for item in final_list:
-            shopping_list.append(
-                f'{item} - {final_list[item]["amount"]}, '
-                f'{final_list[item]["measurement_unit"]}\n'
+            shopping_list += (
+                f'{item["name"]}: {item["measurement_unit"]} {item["total"]}\n'
             )
-        response = HttpResponse(shopping_list, 'Content-Type: text/plain')
+
+        response = HttpResponse(
+            shopping_list,
+            'Content-Type: text/plain'
+        )
         response['Content-Disposition'] = (
-            'attachment;' 'filename="shopping_list.txt"'
+            'attachment;'
+            'filename="shopping_list.txt"'
         )
         return response
