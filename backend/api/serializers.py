@@ -5,7 +5,6 @@ from rest_framework.validators import UniqueTogetherValidator
 
 from users.models import Follow
 from users.serializers import CustomUserSerializer
-
 from .models import Ingredient, IngredientAmount, Recipe, Tag
 
 
@@ -71,6 +70,43 @@ class RecipeSerializer(serializers.ModelSerializer):
             shopping_cart__user=user,
             id=obj.id).exists()
 
+
+class CreateRecipeSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
+    tags = serializers.PrimaryKeyRelatedField(
+        queryset=Tag.objects.all(),
+        many=True
+    )
+    author = CustomUserSerializer(read_only=True)
+    ingredients = serializers.SerializerMethodField()
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited',
+                  'is_in_shopping_cart', 'name', 'image', 'text',
+                  'cooking_time')
+
+    def get_is_favorited(self, obj):
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
+        return Recipe.objects.filter(favorites__user=user, id=obj.id).exists()
+
+    def get_is_in_shopping_cart(self, obj):
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
+        return Recipe.objects.filter(
+            shopping_cart__user=user,
+            id=obj.id).exists()
+
+    def get_ingredients(self, obj):
+        objects = IngredientAmount.objects.filter(recipe=obj)
+        serializer = IngredientAmountSerializer(objects, many=True)
+        return serializer.data
+
     def validate(self, data):
         ingredients = self.initial_data.get('ingredients')
         if not ingredients:
@@ -103,15 +139,15 @@ class RecipeSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         image = validated_data.pop('image')
         ingredients_data = validated_data.pop('ingredients')
+        tags_data = validated_data.pop('tags')
         recipe = Recipe.objects.create(image=image, **validated_data)
-        tags_data = self.initial_data.get('tags')
         recipe.tags.set(tags_data)
         self.create_ingredients(ingredients_data, recipe)
         return recipe
 
     def update(self, instance, validated_data):
         instance.tags.clear()
-        tags_data = self.initial_data.get('tags')
+        tags_data = self.validated_data.pop('tags')
         instance.tags.set(tags_data)
         IngredientAmount.objects.filter(recipe=instance).all().delete()
         self.create_ingredients(validated_data.pop('ingredients'), instance)

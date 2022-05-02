@@ -11,8 +11,9 @@ from .filters import AuthorAndTagFilter, IngredientSearchFilter
 from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from .pagination import LimitPageNumberPagination
 from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
-from .serializers import (CropRecipeSerializer, IngredientSerializer,
-                          RecipeSerializer, TagSerializer)
+from .serializers import (CreateRecipeSerializer, CropRecipeSerializer,
+                          IngredientSerializer, RecipeSerializer,
+                          TagSerializer)
 
 
 class TagsViewSet(ReadOnlyModelViewSet):
@@ -38,6 +39,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return RecipeSerializer
+        return CreateRecipeSerializer
 
     @action(detail=True, methods=['get', 'delete'],
             permission_classes=[IsAuthenticated])
