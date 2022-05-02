@@ -108,7 +108,9 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         return serializer.data
 
     def validate(self, data):
-        ingredients = self.initial_data.get('ingredients')
+        # ingredients = self.initial_data.get('ingredients')
+        request = self.context.get('request')
+        ingredients = request.data['ingredients']
         if not ingredients:
             raise serializers.ValidationError({
                 'ingredients': 'Нужен хоть один ингридиент для рецепта'})
