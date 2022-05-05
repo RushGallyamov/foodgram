@@ -5,10 +5,12 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from .filters import AuthorAndTagFilter, IngredientSearchFilter
-from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
+from .models import (Favorite, Ingredient, IngredientAmount, Recipe,
+                     ShoppingCart, Tag)
 from .pagination import LimitPageNumberPagination
 from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
 from .serializers import (CreateRecipeSerializer, CropRecipeSerializer,
@@ -44,6 +46,35 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if self.request.method == 'GET':
             return RecipeSerializer
         return CreateRecipeSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        serializer = RecipeSerializer(
+            instance=serializer.instance,
+            context={'request': self.request}
+        )
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data, status=HTTP_201_CREATED, headers=headers
+        )
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=partial
+        )
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        serializer = RecipeSerializer(
+            instance=serializer.instance,
+            context={'request': self.request},
+        )
+        return Response(
+            serializer.data, status=HTTP_200_OK
+        )
 
     @action(detail=True, methods=['get', 'delete'],
             permission_classes=[IsAuthenticated])
@@ -85,20 +116,24 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'],
             permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
-        ingredients = Ingredient.objects.filter(
+        ingredients = IngredientAmount.objects.filter(
             recipes__shopping_cart__user=request.user
         ).values(
-            'name',
-            'measurement_unit',
+            'ingredient__name',
+            'ingredient__measurement_unit',
+            'amount'
         ).annotate(
-            total=Sum('ingredientamount__amount')
+            total=Sum('amount')
         )
         shopping_list = (
             f'Список покупок для:\n\n{request.user.first_name}\n\n'
         )
         for item in ingredients:
+
             shopping_list += (
-                f'{item["name"]}: {item["measurement_unit"]} {item["total"]}\n'
+                f'{item["ingredient__name"]}: '
+                f'{item["ingredient__measurement_unit"]} '
+                f'{item["total"]}\n'
             )
 
         response = HttpResponse(

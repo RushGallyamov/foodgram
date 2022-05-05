@@ -57,19 +57,26 @@ class Tag(models.Model):
 
 
 class Recipe(models.Model):
-    author = models.ForeignKey(User, on_delete=models.CASCADE,
-                               related_name='recipes',
-                               verbose_name='Автор рецепта')
-    name = models.CharField(max_length=200,
-                            verbose_name='Название рецепта')
-    image = models.ImageField(upload_to='recipes/',
-                              verbose_name='Картинка рецепта')
-    text = models.TextField(verbose_name='Описание рецепта')
-    ingredients = models.ManyToManyField(
-        Ingredient,
-        through='IngredientAmount',
-        verbose_name='Ингридиенты',
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE,
         related_name='recipes',
+        verbose_name='Автор рецепта'
+    )
+    name = models.CharField(
+        max_length=200,
+        verbose_name='Название рецепта'
+    )
+    image = models.ImageField(
+        upload_to='recipes/',
+        verbose_name='Картинка рецепта'
+    )
+    text = models.TextField(
+        verbose_name='Описание рецепта'
+    )
+    ingredients = models.ManyToManyField(
+        'IngredientAmount',
+        related_name='recipes',
+        verbose_name='Ингредиенты'
     )
     tags = models.ManyToManyField(
         Tag,
@@ -94,12 +101,8 @@ class IngredientAmount(models.Model):
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        verbose_name='Ингридиент',
-    )
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        verbose_name='Рецепт',
+        related_name='ingredient_in_recipe',
+        verbose_name='Ингредиент',
     )
     amount = models.PositiveSmallIntegerField(
         validators=(
@@ -112,10 +115,12 @@ class IngredientAmount(models.Model):
         ordering = ['-id']
         verbose_name = 'Количество ингридиента'
         verbose_name_plural = 'Количество ингридиентов'
-        constraints = [
-            models.UniqueConstraint(fields=['ingredient', 'recipe'],
-                                    name='unique ingredients recipe')
-        ]
+        constraints = (
+            models.UniqueConstraint(
+                fields=('ingredient', 'amount',),
+                name='unique_ingredient_amount',
+            ),
+        )
 
 
 class Favorite(models.Model):
