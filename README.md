@@ -26,9 +26,9 @@ docker-compose up -d --build
 
 4. Выполнить миграции, создать суперпользователя, собрать статику:
 ```
-docker-compose exec web python manage.py migrate
-docker-compose exec web python manage.py createsuperuser
-docker-compose exec web python manage.py collectstatic --no-input
+docker-compose exec backend python manage.py migrate
+docker-compose exec backend python manage.py createsuperuser
+docker-compose exec backend python manage.py collectstatic --no-input
 ```
 
 5. Админка доступна:
@@ -42,7 +42,7 @@ http://localhost/redoc/
 ```
 
 Развернутый проект можно посмотреть на странице:
-http://51.250.96.39/api/v1/
+http://51.250.29.98
 
 
 ## management-команда для загрузки ингридиентов в базу
