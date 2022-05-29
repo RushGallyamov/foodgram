@@ -102,19 +102,19 @@ class IngredientAmount(models.Model):
         Ingredient,
         on_delete=models.CASCADE,
         related_name='ingredient_in_recipe',
-        verbose_name='Ингредиент',
+        verbose_name='ингредиент',
     )
     amount = models.PositiveSmallIntegerField(
         validators=(
             validators.MinValueValidator(
-                1, message='Минимальное количество ингридиентов 1'),),
+                1, message='Минимальное количество ингредиент 1'),),
         verbose_name='Количество',
     )
 
     class Meta:
         ordering = ['-id']
-        verbose_name = 'Количество ингридиента'
-        verbose_name_plural = 'Количество ингридиентов'
+        verbose_name = 'Количество ингредиента'
+        verbose_name_plural = 'Количество ингредиентов'
         constraints = (
             models.UniqueConstraint(
                 fields=('ingredient', 'amount',),

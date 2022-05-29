@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
+from .models import (Favorite, Ingredient, IngredientAmount, Recipe,
+                     ShoppingCart, Tag)
 
 
 class TagAdmin(admin.ModelAdmin):
@@ -10,6 +11,10 @@ class TagAdmin(admin.ModelAdmin):
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit')
     list_filter = ('name',)
+
+
+class IngredientAmountAdmin(admin.ModelAdmin):
+    pass
 
 
 class RecipeAdmin(admin.ModelAdmin):
@@ -22,6 +27,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
 admin.site.register(Tag, TagAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
+admin.site.register(IngredientAmount, IngredientAmountAdmin)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(ShoppingCart)
 admin.site.register(Favorite)

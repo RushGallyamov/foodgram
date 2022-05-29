@@ -1,9 +1,9 @@
 from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
-
 from users.models import Follow
 from users.serializers import CustomUserSerializer
+
 from .models import Ingredient, IngredientAmount, Recipe, Tag
 
 
@@ -58,8 +58,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
     tags = TagSerializer(read_only=True, many=True)
     author = CustomUserSerializer(read_only=True)
-    ingredients = IngredientAmountSerializer(
-        source='ingredientamount_set',
+    ingredients = IngredientAmountReadSerializer(
         many=True,
         read_only=True,
     )
