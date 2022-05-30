@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-
 from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.decorators import action
