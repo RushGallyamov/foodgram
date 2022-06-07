@@ -1,4 +1,4 @@
-# foodgram-project-react
+# foodgram
 
 ## Описание:
 
